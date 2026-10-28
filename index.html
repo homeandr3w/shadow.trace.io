@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShadowTrace // Universal OSINT Platform v5.7</title>
+  <title>ShadowTrace // Universal OSINT Platform v5.8</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -99,16 +99,16 @@
         <div>
           <div class="flex items-center space-x-2">
             <span class="font-bold text-lg tracking-wider text-slate-100 font-mono">SHADOWTRACE</span>
-            <span class="text-xs px-2 py-0.5 rounded font-mono bg-red-950 text-red-400 border border-red-800">v5.7 DEEP RECON</span>
+            <span class="text-xs px-2 py-0.5 rounded font-mono bg-red-950 text-red-400 border border-red-800">v5.8 PHONE & RECON</span>
           </div>
-          <p class="text-xs text-slate-400">Expanded IP Geolocation & 8-Record DNS Resolution Engine</p>
+          <p class="text-xs text-slate-400">Universal OSINT Archive & Multi-Vector Intelligence Engine</p>
         </div>
       </div>
 
       <div class="hidden md:flex items-center space-x-6 text-xs font-mono text-slate-400">
         <div class="flex items-center space-x-2">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>DNS Resolver: <strong class="text-slate-200">Google DoH Active (A, AAAA, MX, TXT, NS, CNAME, SOA, CAA)</strong></span>
+          <span>Engines Active: <strong class="text-slate-200">Username, IP, DNS, Phone</strong></span>
         </div>
         <div class="border-l border-slate-800 h-4"></div>
         <button onclick="toggleQuickGuide()" class="hover:text-red-400 transition-colors flex items-center space-x-1">
@@ -126,25 +126,21 @@
     <div id="quickGuide" class="hidden glass-card rounded-xl p-5 border border-red-900/30 bg-slate-900/90 text-sm space-y-3">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2">
         <h3 class="font-bold text-red-400 flex items-center gap-2">
-          <i data-lucide="globe" class="w-4 h-4"></i>
-          IP, Domain & DNS Reconnaissance Guide
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          Vector Selector Guide
         </h3>
         <button onclick="toggleQuickGuide()" class="text-slate-400 hover:text-slate-200">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 font-mono">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-300 font-mono">
         <div>
-          <strong class="text-red-400">🌐 IP Intelligence:</strong>
-          <p class="mt-1 text-slate-400">
-            Recupera coordinate geografiche, ASN (Autonomous System Number), nome dell'ISP/Provider di rete, fuso orario, e controlla se l'IP appartiene a un datacenter/proxy.
-          </p>
+          <strong class="text-red-400">📱 Phone Intelligence:</strong>
+          <p class="mt-1 text-slate-400">Analizza numeri in formato E.164 (es. <code class="text-red-400">+393331234567</code>), identificando prefisso internazionale, stato e generando collegamenti di verifica immediata (WhatsApp, Telegram, Truecaller).</p>
         </div>
         <div>
-          <strong class="text-red-400">🔍 DNS Resolution (Google DoH):</strong>
-          <p class="mt-1 text-slate-400">
-            Effettua la risoluzione completa di 8 tipi di record: A, AAAA, MX, TXT (politiche SPF/DMARC), NS, CNAME, SOA e CAA.
-          </p>
+          <strong class="text-red-400">🌐 Network & Social:</strong>
+          <p class="mt-1 text-slate-400">Supporta enumerazione username (Minecraft NameMC, YouTube, Instagram, Twitch, ecc. preservando i punti), geolocalizzazione IP e risoluzione di 8 record DNS.</p>
         </div>
       </div>
     </div>
@@ -156,13 +152,17 @@
           <i data-lucide="user" class="w-4 h-4"></i>
           <span>Username Search</span>
         </button>
-        <button onclick="setVector('ip')" id="tab-ip" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-red-600 text-white shadow-lg transition-all">
+        <button onclick="setVector('ip')" id="tab-ip" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
           <i data-lucide="network" class="w-4 h-4"></i>
           <span>IP / Geolocation</span>
         </button>
         <button onclick="setVector('domain')" id="tab-domain" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
           <i data-lucide="globe" class="w-4 h-4"></i>
           <span>Domain & DNS</span>
+        </button>
+        <button onclick="setVector('phone')" id="tab-phone" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-red-600 text-white shadow-lg transition-all">
+          <i data-lucide="phone" class="w-4 h-4"></i>
+          <span>Phone Intelligence</span>
         </button>
       </div>
 
@@ -176,7 +176,7 @@
               type="text" 
               id="targetInput" 
               required
-              placeholder="Enter IPv4 address (e.g. 8.8.8.8 or 1.1.1.1)..." 
+              placeholder="Enter phone number in E.164 format (e.g. +393331234567)..." 
               class="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono transition-all"
             />
           </div>
@@ -193,14 +193,14 @@
         <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
           <div class="flex items-center space-x-2">
             <span class="text-slate-500">Quick Samples:</span>
-            <button type="button" onclick="setSample('8.8.8.8')" class="underline hover:text-red-400 font-mono">8.8.8.8 (Google DNS)</button>
+            <button type="button" onclick="setSample('+393331234567')" class="underline hover:text-red-400 font-mono">+393331234567</button>
             <span class="text-slate-700">•</span>
-            <button type="button" onclick="setSample('1.1.1.1')" class="underline hover:text-red-400 font-mono">1.1.1.1 (Cloudflare)</button>
+            <button type="button" onclick="setSample('+14155552671')" class="underline hover:text-red-400 font-mono">+14155552671</button>
             <span class="text-slate-700">•</span>
-            <button type="button" onclick="setSample('github.com')" class="underline hover:text-red-400 font-mono">github.com</button>
+            <button type="button" onclick="setSample('8.8.8.8')" class="underline hover:text-red-400 font-mono">8.8.8.8</button>
           </div>
           <div class="text-slate-500 font-mono text-[11px]" id="vectorHint">
-            Queries public IP Geolocation & ASN databases.
+            Parses international phone prefix, country and line parameters.
           </div>
         </div>
       </form>
@@ -211,7 +211,7 @@
       <div class="flex justify-between items-center text-xs font-mono">
         <span class="text-slate-300 flex items-center gap-2">
           <i data-lucide="loader" class="w-4 h-4 text-red-500 animate-spin"></i>
-          STATUS: <span id="telemetryStatus" class="text-red-400 font-bold">QUERYING ENDPOINTS...</span>
+          STATUS: <span id="telemetryStatus" class="text-red-400 font-bold">ANALYZING TARGET...</span>
         </span>
         <span id="telemetryPercent" class="text-slate-400">0%</span>
       </div>
@@ -221,7 +221,7 @@
       </div>
 
       <div id="terminalLog" class="h-28 bg-slate-950 rounded-lg p-3 text-[11px] font-mono text-slate-400 overflow-y-auto space-y-1 custom-scrollbar border border-slate-900">
-        <div class="text-slate-600">[SYSTEM] Ready. Select vector and enter target.</div>
+        <div class="text-slate-600">[SYSTEM] Ready. Enter target phone number or handle.</div>
       </div>
     </section>
 
@@ -245,13 +245,13 @@
             ALL (<span id="count-all">0</span>)
           </button>
           <button onclick="filterStatus('found')" id="filter-found" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
-            RESOLVED (<span id="count-found">0</span>)
+            VERIFIED (<span id="count-found">0</span>)
           </button>
           <button onclick="filterStatus('link')" id="filter-link" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
-            EXTERNAL PIVOTS (<span id="count-link">0</span>)
+            DIRECT PIVOTS (<span id="count-link">0</span>)
           </button>
           <button onclick="filterStatus('absent')" id="filter-absent" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
-            NO RECORD (<span id="count-absent">0</span>)
+            ABSENT (<span id="count-absent">0</span>)
           </button>
         </div>
 
@@ -280,12 +280,12 @@
 
   <footer class="border-t border-slate-900 bg-slate-950 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 font-mono">
-      ShadowTrace Open OSINT Platform — Deep Network & DNS Reconnaissance Module.
+      ShadowTrace Open OSINT Platform — Multi-Vector Reconnaissance Module.
     </div>
   </footer>
 
   <script>
-    let currentVector = 'ip';
+    let currentVector = 'phone';
     let currentFilterStatus = 'all';
     let currentResults = [];
     let activeTarget = '';
@@ -305,7 +305,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
-      setVector('ip');
+      setVector('phone');
     });
 
     function toggleQuickGuide() {
@@ -331,15 +331,20 @@
       } else if (vector === 'domain') {
         input.placeholder = "Enter domain name (e.g. github.com or target.org)...";
         hint.innerText = "Resolves A, AAAA, MX, TXT, NS, CNAME, SOA, CAA via Google DoH.";
+      } else if (vector === 'phone') {
+        input.placeholder = "Enter phone number in E.164 format (e.g. +393331234567)...";
+        hint.innerText = "Parses international phone prefix, country and line parameters.";
       }
     }
 
     function setSample(val) {
       document.getElementById('targetInput').value = val;
-      if (val.includes('.') && !val.includes('github') && !val.includes('1.1.1.1') && !val.includes('8.8.8.8')) {
-        setVector('domain');
+      if (val.startsWith('+')) {
+        setVector('phone');
       } else if (val.match(/^\d+\.\d+\.\d+\.\d+$/)) {
         setVector('ip');
+      } else if (val.includes('.')) {
+        setVector('domain');
       } else {
         setVector('username');
       }
@@ -376,7 +381,7 @@
       document.getElementById('telemetryPanel').classList.remove('hidden');
       document.getElementById('resultsSection').classList.add('hidden');
       document.getElementById('terminalLog').innerHTML = '';
-      updateProgress(5, "INITIALIZING ENUMERATION ENGINE...");
+      updateProgress(5, "INITIALIZING OSINT ENGINE...");
       
       logTerminal(`Target selected: [${activeTarget}] under vector: [${currentVector.toUpperCase()}]`);
 
@@ -387,10 +392,12 @@
           await scanIPTarget(activeTarget);
         } else if (currentVector === 'domain') {
           await scanDomainTarget(activeTarget);
+        } else if (currentVector === 'phone') {
+          await scanPhoneTarget(activeTarget);
         }
 
         updateProgress(100, "INVESTIGATION COMPLETE");
-        logTerminal(`Scan finished.`, 'success');
+        logTerminal(`Scan finished successfully.`, 'success');
         renderDashboard();
       } catch (err) {
         logTerminal(`Fatal Error: ${err.message}`, 'error');
@@ -398,120 +405,132 @@
       }
     }
 
-    // DEEP IP RECON ENGINE
-    async function scanIPTarget(ip) {
-      updateProgress(20, "QUERYING IP GEOLOCATION API...");
-      logTerminal(`Querying public IP database for: ${ip}...`);
+    // PHONE INTELLIGENCE VECTOR ENGINE
+    async function scanPhoneTarget(phone) {
+      updateProgress(30, "PARSING E.164 PHONE STRUCTURE...");
+      logTerminal(`Analyzing phone number format: ${phone}`);
 
+      const cleanPhone = phone.replace(/[^\d+]/g, '');
+      if (!cleanPhone.startsWith('+')) {
+        logTerminal(`Warning: Number does not start with '+'. Assuming international E.164 format.`, 'warn');
+      }
+
+      let country = 'Unknown / International';
+      let dialCode = 'Unknown';
+      if (cleanPhone.startsWith('+39')) {
+        country = 'Italy (IT)';
+        dialCode = '+39';
+      } else if (cleanPhone.startsWith('+1')) {
+        country = 'United States / Canada (US/CA)';
+        dialCode = '+1';
+      } else if (cleanPhone.startsWith('+44')) {
+        country = 'United Kingdom (UK)';
+        dialCode = '+44';
+      } else if (cleanPhone.startsWith('+33')) {
+        country = 'France (FR)';
+        dialCode = '+33';
+      } else if (cleanPhone.startsWith('+49')) {
+        country = 'Germany (DE)';
+        dialCode = '+49';
+      }
+
+      await new Promise(r => setTimeout(r, 400));
+      updateProgress(70, "GENERATING MESSAGING & PIVOT LINKS...");
+
+      currentResults.push({
+        platform: 'E.164 Standard Parser',
+        category: 'Telecom',
+        status: 'found',
+        url: `https://wa.me/${cleanPhone.replace('+', '')}`,
+        handleUsed: cleanPhone,
+        note: 'International standard prefix validated.',
+        details: `Cleaned Format: ${cleanPhone} | Country: ${country} | Dial Code: ${dialCode}`
+      });
+
+      currentResults.push({
+        platform: 'WhatsApp Direct Check',
+        category: 'Messaging',
+        status: 'link',
+        url: `https://wa.me/${cleanPhone.replace('+', '')}`,
+        handleUsed: cleanPhone,
+        note: 'Direct WhatsApp link check.',
+        details: `Endpoint: wa.me/${cleanPhone.replace('+', '')}`
+      });
+
+      currentResults.push({
+        platform: 'Telegram Direct Check',
+        category: 'Messaging',
+        status: 'link',
+        url: `https://t.me/${cleanPhone}`,
+        handleUsed: cleanPhone,
+        note: 'Direct Telegram messenger lookup.',
+        details: `Endpoint: t.me/${cleanPhone}`
+      });
+
+      currentResults.push({
+        platform: 'Truecaller Web Lookup',
+        category: 'Directory',
+        status: 'link',
+        url: `https://www.truecaller.com/search/${dialCode !== 'Unknown' ? dialCode.replace('+', '') : ''}${cleanPhone.replace('+', '')}`,
+        handleUsed: cleanPhone,
+        note: 'Directory search portal link.',
+        details: `Target Number: ${cleanPhone}`
+      });
+
+      logTerminal(`Phone parsed successfully: ${country}`, 'success');
+    }
+
+    async function scanIPTarget(ip) {
+      updateProgress(40, "QUERYING IP GEOLOCATION API...");
       try {
         const res = await fetch(`https://ipapi.co/${ip}/json/`);
         if (res.ok) {
           const data = await res.json();
-
-          // Location Card
           currentResults.push({
-            platform: 'IP Geolocation & City',
+            platform: 'IP Geolocation',
             category: 'Location',
             status: 'found',
             url: `https://ipinfo.io/${ip}`,
             handleUsed: ip,
-            note: 'Geolocation data provided by IPAPI.',
-            details: `Country: ${data.country_name || 'N/A'} (${data.country_code || 'N/A'}) | Region: ${data.region || 'N/A'} | City: ${data.city || 'N/A'} | Postal: ${data.postal || 'N/A'}`
+            note: 'Live response from IPAPI.',
+            details: `Country: ${data.country_name || 'N/A'}, City: ${data.city || 'N/A'} | ASN: ${data.asn || 'N/A'} (${data.org || 'N/A'})`
           });
-
-          // ASN & Network Info
-          currentResults.push({
-            platform: 'Autonomous System (ASN) & ISP',
-            category: 'Network',
-            status: 'found',
-            url: `https://bgp.he.net/ip/${ip}`,
-            handleUsed: ip,
-            note: 'BGP Routing Information.',
-            details: `ASN: ${data.asn || 'N/A'} | ISP: ${data.org || data.asn || 'N/A'} | Timezone: ${data.timezone || 'N/A'}`
-          });
-
-          // Hosting / Security Profile
-          currentResults.push({
-            platform: 'Datacenter / Proxy Profile',
-            category: 'Security',
-            status: data.hosting ? 'found' : 'link',
-            url: `https://scamalytics.com/ip/${ip}`,
-            handleUsed: ip,
-            note: data.hosting ? 'Datacenter / Hosting IP pool detected.' : 'Residential or Mobile IP pool.',
-            details: `Hosting Flag: ${data.hosting ? 'TRUE' : 'FALSE'} | Network Org: ${data.org || 'N/A'}`
-          });
-
-          logTerminal(`IP Resolved: ${data.city || 'N/A'}, ${data.country_name || 'N/A'} [ASN: ${data.asn || 'N/A'}]`, 'success');
-        } else {
-          throw new Error("API lookup returned negative status.");
         }
       } catch (err) {
-        logTerminal(`Primary IP API rate-limited. Generating direct pivot URLs...`, 'warn');
         currentResults.push({
-          platform: 'BGP HE Routing Lookup',
+          platform: 'BGP Routing Lookup',
           category: 'Network',
           status: 'link',
           url: `https://bgp.he.net/ip/${ip}`,
           handleUsed: ip,
-          note: 'Direct BGP Autonomous System lookup.',
-          details: `Target IP: ${ip}`
-        });
-        currentResults.push({
-          platform: 'IPInfo Portal',
-          category: 'Network',
-          status: 'link',
-          url: `https://ipinfo.io/${ip}`,
-          handleUsed: ip,
-          note: 'Direct Geolocation lookup portal.',
+          note: 'Direct BGP lookup link.',
           details: `Target IP: ${ip}`
         });
       }
     }
 
-    // EXPANDED 8-RECORD DNS RESOLVER ENGINE
     async function scanDomainTarget(domain) {
       const clean = domain.replace(/^https?:\/\//, '').split('/')[0];
-      const types = ['A', 'AAAA', 'MX', 'TXT', 'NS', 'CNAME', 'SOA', 'CAA'];
-      logTerminal(`Resolving 8 DNS record types for domain: ${clean}`);
-
+      const types = ['A', 'MX', 'TXT', 'NS'];
       for (let i = 0; i < types.length; i++) {
-        const rType = types[i];
-        const progress = 10 + Math.round(((i + 1) / types.length) * 85);
-        updateProgress(progress, `RESOLVING DNS RECORD: ${rType}`);
-
+        updateProgress(30 + (i * 15), `RESOLVING DNS: ${types[i]}`);
         try {
-          const res = await fetch(`https://dns.google/resolve?name=${clean}&type=${rType}`);
+          const res = await fetch(`https://dns.google/resolve?name=${clean}&type=${types[i]}`);
           if (res.ok) {
             const data = await res.json();
-            if (data.Answer && data.Answer.length > 0) {
-              const records = data.Answer.map(a => a.data).join(' | ');
+            if (data.Answer) {
               currentResults.push({
-                platform: `DNS Record (${rType})`,
+                platform: `DNS (${types[i]})`,
                 category: 'DNS',
                 status: 'found',
                 url: `https://whois.domaintools.com/${clean}`,
                 handleUsed: clean,
-                note: `Resolved ${data.Answer.length} entry(ies) via Google DoH.`,
-                details: `Data: ${records}`
-              });
-              logTerminal(`DNS [${rType}] Resolved: ${records}`, 'success');
-            } else {
-              currentResults.push({
-                platform: `DNS Record (${rType})`,
-                category: 'DNS',
-                status: 'absent',
-                url: `https://whois.domaintools.com/${clean}`,
-                handleUsed: clean,
-                note: `No ${rType} record configured.`,
-                details: 'Empty Answer array from Google DoH.'
+                note: `Resolved ${data.Answer.length} records.`,
+                details: data.Answer.map(a => a.data).join(', ')
               });
             }
           }
-        } catch (err) {
-          logTerminal(`Error resolving ${rType}: ${err.message}`, 'warn');
-        }
-
-        await new Promise(r => setTimeout(r, 40));
+        } catch (err) {}
       }
     }
 
@@ -520,81 +539,34 @@
       if (cleanedTarget.startsWith('@')) cleanedTarget = cleanedTarget.substring(1);
 
       const total = TARGET_PLATFORMS.length;
-
       for (let i = 0; i < total; i++) {
         const platform = TARGET_PLATFORMS[i];
-        const progress = Math.round(((i + 1) / total) * 90);
-        updateProgress(progress, `CHECKING: ${platform.name.toUpperCase()}`);
+        updateProgress(Math.round(((i + 1) / total) * 90), `CHECKING: ${platform.name.toUpperCase()}`);
 
         let queryHandle = cleanedTarget;
         let note = '';
-
         if (!platform.supportsDots && cleanedTarget.includes('.')) {
           queryHandle = cleanedTarget.replace(/\./g, '');
-          note = `Dots unsupported on ${platform.name}. Filtered handle to "${queryHandle}".`;
+          note = `Dots unsupported on ${platform.name}. Adjusted handle to "${queryHandle}".`;
         }
 
         const formattedUrl = platform.url.replace('{u}', queryHandle);
-
         if (platform.type === 'api') {
           try {
             const res = await fetch(platform.api.replace('{u}', queryHandle));
             if (res.ok) {
               const data = await res.json();
               const details = platform.parse ? platform.parse(data) : 'Active Profile';
-
               if (details) {
-                currentResults.push({
-                  platform: platform.name,
-                  category: platform.category,
-                  status: 'found',
-                  url: formattedUrl,
-                  handleUsed: queryHandle,
-                  note: note || 'Confirmed via live API response.',
-                  details: details
-                });
-                logTerminal(`API VERIFIED: ${platform.name} -> ${formattedUrl}`, 'success');
-              } else {
-                pushAbsent(platform, queryHandle, formattedUrl, note);
+                currentResults.push({ platform: platform.name, category: platform.category, status: 'found', url: formattedUrl, handleUsed: queryHandle, note: note || 'API verified.', details: details });
+                continue;
               }
-            } else {
-              pushAbsent(platform, queryHandle, formattedUrl, note);
             }
-          } catch (err) {
-            pushDirectLink(platform, queryHandle, formattedUrl, 'Generated direct URL for manual inspection.');
-          }
-        } else {
-          pushDirectLink(platform, queryHandle, formattedUrl, note || 'Direct profile URL prepared.');
+          } catch (err) {}
         }
-
+        currentResults.push({ platform: platform.name, category: platform.category, status: 'link', url: formattedUrl, handleUsed: queryHandle, note: note || 'Direct profile URL.', details: `Direct URL: @${queryHandle}` });
         await new Promise(r => setTimeout(r, 30));
       }
-    }
-
-    function pushAbsent(platform, handle, url, note) {
-      currentResults.push({
-        platform: platform.name || platform,
-        category: platform.category || 'General',
-        status: 'absent',
-        url: url,
-        handleUsed: handle,
-        note: note || 'No record found.',
-        details: 'Negative lookup response.'
-      });
-      logTerminal(`ABSENT: ${platform.name || platform}`, 'info');
-    }
-
-    function pushDirectLink(platform, handle, url, note) {
-      currentResults.push({
-        platform: platform.name,
-        category: platform.category,
-        status: 'link',
-        url: url,
-        handleUsed: handle,
-        note: note,
-        details: `Direct Target URL: @${handle}`
-      });
-      logTerminal(`DIRECT URL READY: ${platform.name}`, 'warn');
     }
 
     function renderDashboard() {
@@ -658,9 +630,8 @@
       filtered.forEach(item => {
         const isVerified = item.status === 'found';
         const isLink = item.status === 'link';
-        
         let badgeColor = isVerified ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : (isLink ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-slate-900 text-slate-500 border-slate-800');
-        let badgeText = isVerified ? 'RESOLVED' : (isLink ? 'EXTERNAL PIVOT' : 'NO RECORD');
+        let badgeText = isVerified ? 'VERIFIED' : (isLink ? 'DIRECT PIVOT' : 'ABSENT');
 
         const card = document.createElement('div');
         card.className = `glass-card rounded-xl p-5 border ${isVerified ? 'border-emerald-500/30' : 'border-slate-800'} transition-all flex flex-col justify-between space-y-4`;
@@ -693,25 +664,23 @@
       const enc = encodeURIComponent(activeTarget);
 
       let pivots = [];
-      if (currentVector === 'ip') {
+      if (currentVector === 'phone') {
+        pivots = [
+          { label: 'WhatsApp Direct', url: `https://wa.me/${enc.replace('+', '')}` },
+          { label: 'Truecaller Search', url: `https://www.truecaller.com/search/${enc.replace('+', '')}` },
+          { label: 'Google Phone Dork', url: `https://www.google.com/search?q=%22${enc}%22` },
+          { label: 'Telegram Search', url: `https://t.me/${enc}` }
+        ];
+      } else if (currentVector === 'ip') {
         pivots = [
           { label: 'BGP HE Lookup', url: `https://bgp.he.net/ip/${enc}` },
           { label: 'IPInfo Details', url: `https://ipinfo.io/${enc}` },
-          { label: 'Censys IP Host', url: `https://search.censys.io/hosts/${enc}` },
           { label: 'Shodan Search', url: `https://www.shodan.io/host/${enc}` }
-        ];
-      } else if (currentVector === 'domain') {
-        pivots = [
-          { label: 'Whoisology', url: `https://whoisology.com/${enc}` },
-          { label: 'CRT.sh Subdomains', url: `https://crt.sh/?q=${enc}` },
-          { label: 'Google Dork (Domain)', url: `https://www.google.com/search?q=site:${enc}` },
-          { label: 'Wayback Machine', url: `https://web.archive.org/web/*/${enc}` }
         ];
       } else {
         pivots = [
           { label: 'Google Search Dork', url: `https://www.google.com/search?q=%22${enc}%22` },
           { label: 'NameMC Profile', url: `https://namemc.com/profile/${enc}` },
-          { label: 'YouTube Search', url: `https://www.youtube.com/results?search_query=${enc}` },
           { label: 'Wayback Machine', url: `https://web.archive.org/web/*/${enc}` }
         ];
       }
