@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShadowTrace // Universal OSINT Platform v5.7</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+              900: '#7f1d1d',
+              950: '#450a0a',
+            },
+            archive: {
+              bg: '#0f172a',
+              card: '#1e293b',
+              border: '#334155',
+              hover: '#475569',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap');
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #ef4444;
+    }
+
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+
+    .glow-red {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.25);
+    }
+
+    .node-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .7; transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body class="custom-scrollbar flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-red-950/80 border border-red-600/40 rounded-lg text-red-500">
+          <i data-lucide="shield-search" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-wider text-slate-100 font-mono">SHADOWTRACE</span>
+            <span class="text-xs px-2 py-0.5 rounded font-mono bg-red-950 text-red-400 border border-red-800">v5.7 DEEP RECON</span>
+          </div>
+          <p class="text-xs text-slate-400">Expanded IP Geolocation & 8-Record DNS Resolution Engine</p>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center space-x-6 text-xs font-mono text-slate-400">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>DNS Resolver: <strong class="text-slate-200">Google DoH Active (A, AAAA, MX, TXT, NS, CNAME, SOA, CAA)</strong></span>
+        </div>
+        <div class="border-l border-slate-800 h-4"></div>
+        <button onclick="toggleQuickGuide()" class="hover:text-red-400 transition-colors flex items-center space-x-1">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <span>Guide</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Guide -->
+    <div id="quickGuide" class="hidden glass-card rounded-xl p-5 border border-red-900/30 bg-slate-900/90 text-sm space-y-3">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-red-400 flex items-center gap-2">
+          <i data-lucide="globe" class="w-4 h-4"></i>
+          IP, Domain & DNS Reconnaissance Guide
+        </h3>
+        <button onclick="toggleQuickGuide()" class="text-slate-400 hover:text-slate-200">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-300 font-mono">
+        <div>
+          <strong class="text-red-400">🌐 IP Intelligence:</strong>
+          <p class="mt-1 text-slate-400">
+            Recupera coordinate geografiche, ASN (Autonomous System Number), nome dell'ISP/Provider di rete, fuso orario, e controlla se l'IP appartiene a un datacenter/proxy.
+          </p>
+        </div>
+        <div>
+          <strong class="text-red-400">🔍 DNS Resolution (Google DoH):</strong>
+          <p class="mt-1 text-slate-400">
+            Effettua la risoluzione completa di 8 tipi di record: A, AAAA, MX, TXT (politiche SPF/DMARC), NS, CNAME, SOA e CAA.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Input Section -->
+    <section class="glass-card rounded-2xl p-6 border border-slate-800 glow-red">
+      <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-4 mb-5">
+        <button onclick="setVector('username')" id="tab-username" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span>Username Search</span>
+        </button>
+        <button onclick="setVector('ip')" id="tab-ip" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-red-600 text-white shadow-lg transition-all">
+          <i data-lucide="network" class="w-4 h-4"></i>
+          <span>IP / Geolocation</span>
+        </button>
+        <button onclick="setVector('domain')" id="tab-domain" class="vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-slate-800 text-slate-400 hover:text-slate-200 transition-all">
+          <i data-lucide="globe" class="w-4 h-4"></i>
+          <span>Domain & DNS</span>
+        </button>
+      </div>
+
+      <form onsubmit="executeInvestigation(event)" class="space-y-4">
+        <div class="flex flex-col md:flex-row gap-3">
+          <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="search" class="w-5 h-5"></i>
+            </div>
+            <input 
+              type="text" 
+              id="targetInput" 
+              required
+              placeholder="Enter IPv4 address (e.g. 8.8.8.8 or 1.1.1.1)..." 
+              class="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 font-mono transition-all"
+            />
+          </div>
+          <button 
+            type="submit" 
+            id="scanBtn"
+            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-xl font-mono flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95"
+          >
+            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+            <span>START RECON</span>
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500">Quick Samples:</span>
+            <button type="button" onclick="setSample('8.8.8.8')" class="underline hover:text-red-400 font-mono">8.8.8.8 (Google DNS)</button>
+            <span class="text-slate-700">•</span>
+            <button type="button" onclick="setSample('1.1.1.1')" class="underline hover:text-red-400 font-mono">1.1.1.1 (Cloudflare)</button>
+            <span class="text-slate-700">•</span>
+            <button type="button" onclick="setSample('github.com')" class="underline hover:text-red-400 font-mono">github.com</button>
+          </div>
+          <div class="text-slate-500 font-mono text-[11px]" id="vectorHint">
+            Queries public IP Geolocation & ASN databases.
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Telemetry Panel -->
+    <section id="telemetryPanel" class="hidden glass-card rounded-xl p-4 border border-slate-800 space-y-3">
+      <div class="flex justify-between items-center text-xs font-mono">
+        <span class="text-slate-300 flex items-center gap-2">
+          <i data-lucide="loader" class="w-4 h-4 text-red-500 animate-spin"></i>
+          STATUS: <span id="telemetryStatus" class="text-red-400 font-bold">QUERYING ENDPOINTS...</span>
+        </span>
+        <span id="telemetryPercent" class="text-slate-400">0%</span>
+      </div>
+      
+      <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+        <div id="progressBar" class="bg-gradient-to-r from-red-600 to-amber-500 h-full w-0 transition-all duration-300"></div>
+      </div>
+
+      <div id="terminalLog" class="h-28 bg-slate-950 rounded-lg p-3 text-[11px] font-mono text-slate-400 overflow-y-auto space-y-1 custom-scrollbar border border-slate-900">
+        <div class="text-slate-600">[SYSTEM] Ready. Select vector and enter target.</div>
+      </div>
+    </section>
+
+    <!-- Results Dashboard -->
+    <section id="resultsSection" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+        <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-800 text-xs font-mono">
+          <button id="viewGridBtn" onclick="switchView('grid')" class="px-3 py-1.5 rounded-md font-medium text-white bg-slate-800 flex items-center gap-2">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+            <span>Evidence Locker</span>
+          </button>
+          <button id="viewMapBtn" onclick="switchView('map')" class="px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white flex items-center gap-2">
+            <i data-lucide="git-fork" class="w-3.5 h-3.5"></i>
+            <span>Relationship Map</span>
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <span class="text-slate-500 mr-1">Filter Results:</span>
+          <button onclick="filterStatus('all')" id="filter-all" class="filter-btn px-2.5 py-1 rounded border border-red-500/50 bg-red-950/40 text-red-300">
+            ALL (<span id="count-all">0</span>)
+          </button>
+          <button onclick="filterStatus('found')" id="filter-found" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
+            RESOLVED (<span id="count-found">0</span>)
+          </button>
+          <button onclick="filterStatus('link')" id="filter-link" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
+            EXTERNAL PIVOTS (<span id="count-link">0</span>)
+          </button>
+          <button onclick="filterStatus('absent')" id="filter-absent" class="filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200">
+            NO RECORD (<span id="count-absent">0</span>)
+          </button>
+        </div>
+
+        <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-mono flex items-center gap-2">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Export JSON</span>
+        </button>
+      </div>
+
+      <div id="gridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <div id="mapContainer" class="hidden glass-card rounded-xl p-6 border border-slate-800 min-h-[450px] flex flex-col items-center justify-center">
+        <svg id="svgGraph" class="w-full h-[400px] border border-slate-900 bg-slate-950 rounded-lg"></svg>
+      </div>
+
+      <div class="glass-card rounded-xl p-5 border border-slate-800 space-y-3">
+        <h4 class="text-xs font-mono text-slate-400 flex items-center gap-2">
+          <i data-lucide="external-link" class="w-4 h-4 text-red-500"></i>
+          EXTERNAL OSINT PIVOT SHORTCUTS FOR: <span id="pivotTarget" class="text-red-400 font-bold"></span>
+        </h4>
+        <div id="pivotContainer" class="flex flex-wrap gap-2 text-xs font-mono"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-900 bg-slate-950 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 font-mono">
+      ShadowTrace Open OSINT Platform — Deep Network & DNS Reconnaissance Module.
+    </div>
+  </footer>
+
+  <script>
+    let currentVector = 'ip';
+    let currentFilterStatus = 'all';
+    let currentResults = [];
+    let activeTarget = '';
+
+    const TARGET_PLATFORMS = [
+      { name: 'NameMC', category: 'Minecraft', url: 'https://namemc.com/profile/{u}', type: 'api', api: 'https://mc-heads.net/minecraft/profile/{u}', parse: d => d && d.id ? `Minecraft UUID: ${d.id}` : null, supportsDots: false },
+      { name: 'Crafty.gg', category: 'Minecraft', url: 'https://crafty.gg/players/{u}', type: 'link', supportsDots: false },
+      { name: 'Capes.dev', category: 'Minecraft', url: 'https://capes.dev/u/{u}', type: 'link', supportsDots: false },
+      { name: 'YouTube', category: 'Media', url: 'https://www.youtube.com/@{u}', type: 'link', supportsDots: true },
+      { name: 'Instagram', category: 'Social', url: 'https://instagram.com/{u}', type: 'link', supportsDots: true },
+      { name: 'Facebook', category: 'Social', url: 'https://facebook.com/{u}', type: 'link', supportsDots: true },
+      { name: 'Twitch', category: 'Streaming', url: 'https://twitch.tv/{u}', type: 'link', supportsDots: true },
+      { name: 'TikTok', category: 'Social', url: 'https://tiktok.com/@{u}', type: 'link', supportsDots: true },
+      { name: 'GitHub', category: 'Developer', url: 'https://github.com/{u}', type: 'api', api: 'https://api.github.com/users/{u}', parse: d => d && d.id ? (d.bio || `Public Repos: ${d.public_repos}`) : null, supportsDots: true },
+      { name: 'Reddit', category: 'Social', url: 'https://reddit.com/user/{u}', type: 'api', api: 'https://www.reddit.com/user/{u}/about.json', parse: d => d && d.data && d.data.name ? `Karma: ${d.data.total_karma || 0}` : null, supportsDots: true }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      setVector('ip');
+    });
+
+    function toggleQuickGuide() {
+      document.getElementById('quickGuide').classList.toggle('hidden');
+    }
+
+    function setVector(vector) {
+      currentVector = vector;
+      document.querySelectorAll('.vector-tab').forEach(tab => {
+        tab.className = "vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-slate-800 text-slate-400 hover:text-slate-200 transition-all";
+      });
+      document.getElementById(`tab-${vector}`).className = "vector-tab px-4 py-2 rounded-lg text-xs font-mono font-medium flex items-center space-x-2 bg-red-600 text-white shadow-lg transition-all";
+      
+      const input = document.getElementById('targetInput');
+      const hint = document.getElementById('vectorHint');
+
+      if (vector === 'username') {
+        input.placeholder = "Enter target handle (e.g. john.doe, Notch, or octocat)...";
+        hint.innerText = "Dots (.), dashes (-), and underscores (_) are fully preserved.";
+      } else if (vector === 'ip') {
+        input.placeholder = "Enter IPv4 address (e.g. 8.8.8.8 or 1.1.1.1)...";
+        hint.innerText = "Queries public IP Geolocation & ASN databases.";
+      } else if (vector === 'domain') {
+        input.placeholder = "Enter domain name (e.g. github.com or target.org)...";
+        hint.innerText = "Resolves A, AAAA, MX, TXT, NS, CNAME, SOA, CAA via Google DoH.";
+      }
+    }
+
+    function setSample(val) {
+      document.getElementById('targetInput').value = val;
+      if (val.includes('.') && !val.includes('github') && !val.includes('1.1.1.1') && !val.includes('8.8.8.8')) {
+        setVector('domain');
+      } else if (val.match(/^\d+\.\d+\.\d+\.\d+$/)) {
+        setVector('ip');
+      } else {
+        setVector('username');
+      }
+    }
+
+    function logTerminal(msg, type = 'info') {
+      const terminal = document.getElementById('terminalLog');
+      const entry = document.createElement('div');
+      const timestamp = new Date().toLocaleTimeString();
+      let colorClass = 'text-slate-400';
+      if (type === 'success') colorClass = 'text-emerald-400';
+      if (type === 'error') colorClass = 'text-red-400';
+      if (type === 'warn') colorClass = 'text-amber-400';
+
+      entry.className = colorClass;
+      entry.innerHTML = `<span class="text-slate-600">[${timestamp}]</span> ${msg}`;
+      terminal.appendChild(entry);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function updateProgress(percent, statusText) {
+      document.getElementById('progressBar').style.width = `${percent}%`;
+      document.getElementById('telemetryPercent').innerText = `${percent}%`;
+      if (statusText) document.getElementById('telemetryStatus').innerText = statusText;
+    }
+
+    async function executeInvestigation(e) {
+      if (e) e.preventDefault();
+      const rawInput = document.getElementById('targetInput').value;
+      if (!rawInput) return;
+
+      activeTarget = rawInput.trim();
+      currentResults = [];
+      document.getElementById('telemetryPanel').classList.remove('hidden');
+      document.getElementById('resultsSection').classList.add('hidden');
+      document.getElementById('terminalLog').innerHTML = '';
+      updateProgress(5, "INITIALIZING ENUMERATION ENGINE...");
+      
+      logTerminal(`Target selected: [${activeTarget}] under vector: [${currentVector.toUpperCase()}]`);
+
+      try {
+        if (currentVector === 'username') {
+          await scanTargetList(activeTarget);
+        } else if (currentVector === 'ip') {
+          await scanIPTarget(activeTarget);
+        } else if (currentVector === 'domain') {
+          await scanDomainTarget(activeTarget);
+        }
+
+        updateProgress(100, "INVESTIGATION COMPLETE");
+        logTerminal(`Scan finished.`, 'success');
+        renderDashboard();
+      } catch (err) {
+        logTerminal(`Fatal Error: ${err.message}`, 'error');
+        updateProgress(100, "SCAN ERROR");
+      }
+    }
+
+    // DEEP IP RECON ENGINE
+    async function scanIPTarget(ip) {
+      updateProgress(20, "QUERYING IP GEOLOCATION API...");
+      logTerminal(`Querying public IP database for: ${ip}...`);
+
+      try {
+        const res = await fetch(`https://ipapi.co/${ip}/json/`);
+        if (res.ok) {
+          const data = await res.json();
+
+          // Location Card
+          currentResults.push({
+            platform: 'IP Geolocation & City',
+            category: 'Location',
+            status: 'found',
+            url: `https://ipinfo.io/${ip}`,
+            handleUsed: ip,
+            note: 'Geolocation data provided by IPAPI.',
+            details: `Country: ${data.country_name || 'N/A'} (${data.country_code || 'N/A'}) | Region: ${data.region || 'N/A'} | City: ${data.city || 'N/A'} | Postal: ${data.postal || 'N/A'}`
+          });
+
+          // ASN & Network Info
+          currentResults.push({
+            platform: 'Autonomous System (ASN) & ISP',
+            category: 'Network',
+            status: 'found',
+            url: `https://bgp.he.net/ip/${ip}`,
+            handleUsed: ip,
+            note: 'BGP Routing Information.',
+            details: `ASN: ${data.asn || 'N/A'} | ISP: ${data.org || data.asn || 'N/A'} | Timezone: ${data.timezone || 'N/A'}`
+          });
+
+          // Hosting / Security Profile
+          currentResults.push({
+            platform: 'Datacenter / Proxy Profile',
+            category: 'Security',
+            status: data.hosting ? 'found' : 'link',
+            url: `https://scamalytics.com/ip/${ip}`,
+            handleUsed: ip,
+            note: data.hosting ? 'Datacenter / Hosting IP pool detected.' : 'Residential or Mobile IP pool.',
+            details: `Hosting Flag: ${data.hosting ? 'TRUE' : 'FALSE'} | Network Org: ${data.org || 'N/A'}`
+          });
+
+          logTerminal(`IP Resolved: ${data.city || 'N/A'}, ${data.country_name || 'N/A'} [ASN: ${data.asn || 'N/A'}]`, 'success');
+        } else {
+          throw new Error("API lookup returned negative status.");
+        }
+      } catch (err) {
+        logTerminal(`Primary IP API rate-limited. Generating direct pivot URLs...`, 'warn');
+        currentResults.push({
+          platform: 'BGP HE Routing Lookup',
+          category: 'Network',
+          status: 'link',
+          url: `https://bgp.he.net/ip/${ip}`,
+          handleUsed: ip,
+          note: 'Direct BGP Autonomous System lookup.',
+          details: `Target IP: ${ip}`
+        });
+        currentResults.push({
+          platform: 'IPInfo Portal',
+          category: 'Network',
+          status: 'link',
+          url: `https://ipinfo.io/${ip}`,
+          handleUsed: ip,
+          note: 'Direct Geolocation lookup portal.',
+          details: `Target IP: ${ip}`
+        });
+      }
+    }
+
+    // EXPANDED 8-RECORD DNS RESOLVER ENGINE
+    async function scanDomainTarget(domain) {
+      const clean = domain.replace(/^https?:\/\//, '').split('/')[0];
+      const types = ['A', 'AAAA', 'MX', 'TXT', 'NS', 'CNAME', 'SOA', 'CAA'];
+      logTerminal(`Resolving 8 DNS record types for domain: ${clean}`);
+
+      for (let i = 0; i < types.length; i++) {
+        const rType = types[i];
+        const progress = 10 + Math.round(((i + 1) / types.length) * 85);
+        updateProgress(progress, `RESOLVING DNS RECORD: ${rType}`);
+
+        try {
+          const res = await fetch(`https://dns.google/resolve?name=${clean}&type=${rType}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.Answer && data.Answer.length > 0) {
+              const records = data.Answer.map(a => a.data).join(' | ');
+              currentResults.push({
+                platform: `DNS Record (${rType})`,
+                category: 'DNS',
+                status: 'found',
+                url: `https://whois.domaintools.com/${clean}`,
+                handleUsed: clean,
+                note: `Resolved ${data.Answer.length} entry(ies) via Google DoH.`,
+                details: `Data: ${records}`
+              });
+              logTerminal(`DNS [${rType}] Resolved: ${records}`, 'success');
+            } else {
+              currentResults.push({
+                platform: `DNS Record (${rType})`,
+                category: 'DNS',
+                status: 'absent',
+                url: `https://whois.domaintools.com/${clean}`,
+                handleUsed: clean,
+                note: `No ${rType} record configured.`,
+                details: 'Empty Answer array from Google DoH.'
+              });
+            }
+          }
+        } catch (err) {
+          logTerminal(`Error resolving ${rType}: ${err.message}`, 'warn');
+        }
+
+        await new Promise(r => setTimeout(r, 40));
+      }
+    }
+
+    async function scanTargetList(target) {
+      let cleanedTarget = target.trim();
+      if (cleanedTarget.startsWith('@')) cleanedTarget = cleanedTarget.substring(1);
+
+      const total = TARGET_PLATFORMS.length;
+
+      for (let i = 0; i < total; i++) {
+        const platform = TARGET_PLATFORMS[i];
+        const progress = Math.round(((i + 1) / total) * 90);
+        updateProgress(progress, `CHECKING: ${platform.name.toUpperCase()}`);
+
+        let queryHandle = cleanedTarget;
+        let note = '';
+
+        if (!platform.supportsDots && cleanedTarget.includes('.')) {
+          queryHandle = cleanedTarget.replace(/\./g, '');
+          note = `Dots unsupported on ${platform.name}. Filtered handle to "${queryHandle}".`;
+        }
+
+        const formattedUrl = platform.url.replace('{u}', queryHandle);
+
+        if (platform.type === 'api') {
+          try {
+            const res = await fetch(platform.api.replace('{u}', queryHandle));
+            if (res.ok) {
+              const data = await res.json();
+              const details = platform.parse ? platform.parse(data) : 'Active Profile';
+
+              if (details) {
+                currentResults.push({
+                  platform: platform.name,
+                  category: platform.category,
+                  status: 'found',
+                  url: formattedUrl,
+                  handleUsed: queryHandle,
+                  note: note || 'Confirmed via live API response.',
+                  details: details
+                });
+                logTerminal(`API VERIFIED: ${platform.name} -> ${formattedUrl}`, 'success');
+              } else {
+                pushAbsent(platform, queryHandle, formattedUrl, note);
+              }
+            } else {
+              pushAbsent(platform, queryHandle, formattedUrl, note);
+            }
+          } catch (err) {
+            pushDirectLink(platform, queryHandle, formattedUrl, 'Generated direct URL for manual inspection.');
+          }
+        } else {
+          pushDirectLink(platform, queryHandle, formattedUrl, note || 'Direct profile URL prepared.');
+        }
+
+        await new Promise(r => setTimeout(r, 30));
+      }
+    }
+
+    function pushAbsent(platform, handle, url, note) {
+      currentResults.push({
+        platform: platform.name || platform,
+        category: platform.category || 'General',
+        status: 'absent',
+        url: url,
+        handleUsed: handle,
+        note: note || 'No record found.',
+        details: 'Negative lookup response.'
+      });
+      logTerminal(`ABSENT: ${platform.name || platform}`, 'info');
+    }
+
+    function pushDirectLink(platform, handle, url, note) {
+      currentResults.push({
+        platform: platform.name,
+        category: platform.category,
+        status: 'link',
+        url: url,
+        handleUsed: handle,
+        note: note,
+        details: `Direct Target URL: @${handle}`
+      });
+      logTerminal(`DIRECT URL READY: ${platform.name}`, 'warn');
+    }
+
+    function renderDashboard() {
+      document.getElementById('resultsSection').classList.remove('hidden');
+      document.getElementById('count-all').innerText = currentResults.length;
+      document.getElementById('count-found').innerText = currentResults.filter(r => r.status === 'found').length;
+      document.getElementById('count-link').innerText = currentResults.filter(r => r.status === 'link').length;
+      document.getElementById('count-absent').innerText = currentResults.filter(r => r.status === 'absent').length;
+      document.getElementById('pivotTarget').innerText = activeTarget;
+
+      renderPivotLinks();
+      renderResultsGrid();
+      renderRelationshipMap();
+    }
+
+    function filterStatus(status) {
+      currentFilterStatus = status;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = "filter-btn px-2.5 py-1 rounded border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 font-mono text-xs";
+      });
+      document.getElementById(`filter-${status}`).className = "filter-btn px-2.5 py-1 rounded border border-red-500/50 bg-red-950/40 text-red-300 font-mono text-xs";
+      switchView('grid');
+      renderResultsGrid();
+    }
+
+    function switchView(view) {
+      const gridBtn = document.getElementById('viewGridBtn');
+      const mapBtn = document.getElementById('viewMapBtn');
+      const gridContainer = document.getElementById('gridContainer');
+      const mapContainer = document.getElementById('mapContainer');
+
+      if (view === 'grid') {
+        gridBtn.className = "px-3 py-1.5 rounded-md font-medium text-white bg-slate-800 flex items-center gap-2";
+        mapBtn.className = "px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white flex items-center gap-2";
+        gridContainer.classList.remove('hidden');
+        mapContainer.classList.add('hidden');
+      } else {
+        mapBtn.className = "px-3 py-1.5 rounded-md font-medium text-white bg-slate-800 flex items-center gap-2";
+        gridBtn.className = "px-3 py-1.5 rounded-md font-medium text-slate-400 hover:text-white flex items-center gap-2";
+        gridContainer.classList.add('hidden');
+        mapContainer.classList.remove('hidden');
+      }
+    }
+
+    function renderResultsGrid() {
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+
+      const filtered = currentResults.filter(item => {
+        if (currentFilterStatus === 'found') return item.status === 'found';
+        if (currentFilterStatus === 'link') return item.status === 'link';
+        if (currentFilterStatus === 'absent') return item.status === 'absent';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 font-mono text-xs">No targets match filter [${currentFilterStatus.toUpperCase()}].</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isVerified = item.status === 'found';
+        const isLink = item.status === 'link';
+        
+        let badgeColor = isVerified ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : (isLink ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-slate-900 text-slate-500 border-slate-800');
+        let badgeText = isVerified ? 'RESOLVED' : (isLink ? 'EXTERNAL PIVOT' : 'NO RECORD');
+
+        const card = document.createElement('div');
+        card.className = `glass-card rounded-xl p-5 border ${isVerified ? 'border-emerald-500/30' : 'border-slate-800'} transition-all flex flex-col justify-between space-y-4`;
+        card.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400 uppercase">${item.category}</span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded border ${badgeColor}">${badgeText}</span>
+            </div>
+            <h3 class="font-bold text-slate-100 text-base">${item.platform}</h3>
+            <p class="text-xs text-slate-400 font-mono">Target: <strong class="text-slate-200">${item.handleUsed}</strong></p>
+            <div class="p-2.5 bg-slate-950/60 rounded-lg border border-slate-900 text-xs text-slate-300 font-mono">${item.details}</div>
+            ${item.note ? `<p class="text-[11px] text-amber-400/90 font-mono italic">i ${item.note}</p>` : ''}
+          </div>
+          <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between">
+            <a href="${item.url}" target="_blank" rel="noopener" class="text-xs text-red-400 hover:text-red-300 font-mono flex items-center gap-1">
+              <span>Open Endpoint Link</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function renderPivotLinks() {
+      const container = document.getElementById('pivotContainer');
+      container.innerHTML = '';
+      const enc = encodeURIComponent(activeTarget);
+
+      let pivots = [];
+      if (currentVector === 'ip') {
+        pivots = [
+          { label: 'BGP HE Lookup', url: `https://bgp.he.net/ip/${enc}` },
+          { label: 'IPInfo Details', url: `https://ipinfo.io/${enc}` },
+          { label: 'Censys IP Host', url: `https://search.censys.io/hosts/${enc}` },
+          { label: 'Shodan Search', url: `https://www.shodan.io/host/${enc}` }
+        ];
+      } else if (currentVector === 'domain') {
+        pivots = [
+          { label: 'Whoisology', url: `https://whoisology.com/${enc}` },
+          { label: 'CRT.sh Subdomains', url: `https://crt.sh/?q=${enc}` },
+          { label: 'Google Dork (Domain)', url: `https://www.google.com/search?q=site:${enc}` },
+          { label: 'Wayback Machine', url: `https://web.archive.org/web/*/${enc}` }
+        ];
+      } else {
+        pivots = [
+          { label: 'Google Search Dork', url: `https://www.google.com/search?q=%22${enc}%22` },
+          { label: 'NameMC Profile', url: `https://namemc.com/profile/${enc}` },
+          { label: 'YouTube Search', url: `https://www.youtube.com/results?search_query=${enc}` },
+          { label: 'Wayback Machine', url: `https://web.archive.org/web/*/${enc}` }
+        ];
+      }
+
+      pivots.forEach(p => {
+        const a = document.createElement('a');
+        a.href = p.url;
+        a.target = '_blank';
+        a.className = "px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-red-500/50 rounded text-slate-300 hover:text-white transition-colors flex items-center gap-1";
+        a.innerHTML = `<span>${p.label}</span> <i data-lucide="arrow-up-right" class="w-3 h-3 text-slate-500"></i>`;
+        container.appendChild(a);
+      });
+      lucide.createIcons();
+    }
+
+    function renderRelationshipMap() {
+      const svg = document.getElementById('svgGraph');
+      svg.innerHTML = '';
+      const width = svg.clientWidth || 800;
+      const height = 400;
+      const cx = width / 2;
+      const cy = height / 2;
+
+      const root = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const rc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      rc.setAttribute('cx', cx); rc.setAttribute('cy', cy); rc.setAttribute('r', 28);
+      rc.setAttribute('fill', '#ef4444'); rc.setAttribute('class', 'node-pulse');
+      const rt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      rt.setAttribute('x', cx); rt.setAttribute('y', cy + 4); rt.setAttribute('text-anchor', 'middle');
+      rt.setAttribute('fill', '#fff'); rt.setAttribute('font-size', '10'); rt.setAttribute('font-family', 'monospace'); rt.setAttribute('font-weight', 'bold');
+      rt.textContent = activeTarget.length > 10 ? activeTarget.substring(0, 8) + '..' : activeTarget;
+      root.appendChild(rc); root.appendChild(rt);
+
+      const activeNodes = currentResults.filter(r => r.status === 'found' || r.status === 'link');
+      const radius = 130;
+      activeNodes.forEach((node, i) => {
+        const angle = (i / (activeNodes.length || 1)) * 2 * Math.PI;
+        const nx = cx + radius * Math.cos(angle);
+        const ny = cy + radius * Math.sin(angle);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', cx); line.setAttribute('y1', cy); line.setAttribute('x2', nx); line.setAttribute('y2', ny);
+        line.setAttribute('stroke', '#334155'); line.setAttribute('stroke-width', '1.5'); line.setAttribute('stroke-dasharray', '4');
+        svg.appendChild(line);
+
+        const ng = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const nc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        nc.setAttribute('cx', nx); nc.setAttribute('cy', ny); nc.setAttribute('r', 16);
+        nc.setAttribute('fill', '#1e293b'); nc.setAttribute('stroke', node.status === 'found' ? '#10b981' : '#f59e0b'); nc.setAttribute('stroke-width', '2');
+        const nl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        nl.setAttribute('x', nx); nl.setAttribute('y', ny + 28); nl.setAttribute('text-anchor', 'middle');
+        nl.setAttribute('fill', '#94a3b8'); nl.setAttribute('font-size', '10'); nl.setAttribute('font-family', 'monospace');
+        nl.textContent = node.platform;
+        ng.appendChild(nc); ng.appendChild(nl);
+        svg.appendChild(ng);
+      });
+      svg.appendChild(root);
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        target: activeTarget, vector: currentVector, timestamp: new Date().toISOString(), results: currentResults
+      }, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `ShadowTrace_${activeTarget}_Report.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+  </script>
+</body>
+</html>
